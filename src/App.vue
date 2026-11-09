@@ -9,32 +9,85 @@
  */
 
 import { ref, computed } from "vue";
+import AnimalCard from "./components/AnimalCard.vue";
+import AnimalControls from "./components/AnimalControls.vue";
 
 // ------------------------------------
 // App Data
 // ------------------------------------
 
-// TODO 1: Create the app's data with ref(): the animals array, loading,
-// and error.
+const animals = ref([]);
+const loading = ref(false);
+const error = ref("");
 
 // ------------------------------------
 // Load the Animals
 // ------------------------------------
 
-// TODO 1: Write loadAnimals() and call it.
+async function loadAnimals() {
+	loading.value = true;
+	error.value = "";
+
+	try {
+		const response = await fetch(`${import.meta.env.BASE_URL}animals.json`);
+		if (!response.ok) {
+			throw new Error(`Request failed with status ${response.status}`);
+		}
+		animals.value = await response.json();
+	} catch (err) {
+		console.error(err);
+		error.value = "Sorry, the animals couldn't be loaded. Try refreshing the page.";
+	} finally {
+		loading.value = false;
+	}
+}
+
+loadAnimals();
 
 // ------------------------------------
 // Adopt or Return an Animal
 // ------------------------------------
 
-// TODO 3: Write toggleAdoption(animal).
+function toggleAdoption(animal) {
+	animal.adopted = !animal.adopted;
+}
 
 // ------------------------------------
 // Filter, Sort, and Count
 // ------------------------------------
 
-// TODO 4: Create activeFilter and activeSort, the visibleAnimals and
-// availableCount computed properties, and setFilter() and setSort().
+const activeFilter = ref("all");
+const activeSort = ref("default");
+
+const visibleAnimals = computed(() => {
+	let visible = animals.value.slice();
+
+	if (activeFilter.value === "available") {
+		visible = visible.filter((animal) => !animal.adopted);
+	} else if (activeFilter.value === "adopted") {
+		visible = visible.filter((animal) => animal.adopted);
+	}
+
+	if (activeSort.value === "name") {
+		visible.sort((a, b) => a.name.localeCompare(b.name));
+	} else if (activeSort.value === "age") {
+		visible.sort((a, b) => a.age - b.age);
+	}
+
+	return visible;
+});
+
+const availableCount = computed(
+	() => animals.value.filter((animal) => !animal.adopted).length,
+);
+
+function setFilter(filter) {
+	activeFilter.value = filter;
+}
+
+function setSort(sort) {
+	activeSort.value = sort;
+}
 </script>
 
 <template>
@@ -47,12 +100,30 @@ import { ref, computed } from "vue";
 		<section aria-labelledby="animals-heading">
 			<h2 id="animals-heading">Animals</h2>
 
-			<!-- TODO 4: The available count goes here. -->
+			<p v-if="!loading && !error" id="animal-count" aria-live="polite">
+				{{ availableCount }} of {{ animals.length }} animals are available for adoption.
+			</p>
 
-			<!-- TODO 4: The AnimalControls component goes here. -->
+			<AnimalControls
+				:active-filter="activeFilter"
+				@filter="setFilter"
+				@sort="setSort"
+			/>
 
 			<div id="animal-list" aria-live="polite">
-				<!-- TODO 1: The loading, error, and empty messages, and the animals, go here. -->
+				<p v-if="loading">Loading animals...</p>
+				<p v-else-if="error" class="error-message">{{ error }}</p>
+				<p v-else-if="visibleAnimals.length === 0" class="empty-message">
+					There are no animals to show.
+				</p>
+				<div v-else>
+					<AnimalCard
+						v-for="animal in visibleAnimals"
+						:key="animal.id"
+						:animal="animal"
+						@toggle="toggleAdoption(animal)"
+					/>
+				</div>
 			</div>
 		</section>
 	</main>
