@@ -1,3 +1,58 @@
+# About this project
+
+This adoption board shows which animals are available at the shelter. You can
+filter the cards, sort them by name or age, and adopt or return an animal.
+Refreshing the page reloads the original animal data.
+
+## How to run it
+
+After cloning the repository, open a terminal in the project folder and run:
+
+```sh
+npm install
+npm run dev
+```
+
+Open the local address that Vite prints. To check the production build, run
+`npm run build`.
+
+## Component map
+
+- `App.vue` loads the animals, owns the adoption and display state, and
+  decides which cards appear. It takes no props and emits no events. It passes
+  each animal to its card and the active filter to the controls. It listens for
+  `toggle`, `filter`, and `sort` from those components.
+- `AnimalCard.vue` displays one animal, including its arrival date and status.
+  It receives the `animal` prop from App and emits `toggle` when its Adopt
+  or Return button is clicked. App listens for that event.
+- `AnimalControls.vue` displays the filter buttons and sort menu. App passes
+  it `activeFilter` so it can highlight the selected button. It emits
+  `filter` or `sort` with the selected value, and App handles those events
+  with `setFilter()` and `setSort()`.
+
+## What happens when you adopt Luna
+
+1. Luna's `AnimalCard` receives the button click and emits `toggle`.
+2. The listener in App's card loop calls `toggleAdoption(animal)` with Luna's
+   record. The card doesn't need to send an ID because App already knows which
+   animal it passed to that card.
+3. `toggleAdoption()` changes Luna's `adopted` value from `false` to
+   `true`. Vue updates the card to show **Adopted**, gives it the adopted
+   style, and changes the button to **Return**.
+4. `availableCount` recalculates from the full list, so the count drops from
+   **4 of 8** to **3 of 8**. If the Available filter is active,
+   `visibleAnimals` leaves Luna out and Vue removes her card from that view.
+
+## What changed from Assignment 4
+
+In Assignment 4, I had to call `updateDisplay()` after each change to filter
+and sort the list, rebuild the cards, and refresh the count. In Vue,
+`visibleAnimals` and `availableCount` calculate what the templates need.
+Vue updates the page when that data changes. The code still decides what each
+filter means, how the sort works, and how a click changes the animal's status.
+
+---
+
 # Assignment 5 — Vue Components and Events
 
 You will rebuild the animal adoption board from Assignment 4 in Vue. It will look
