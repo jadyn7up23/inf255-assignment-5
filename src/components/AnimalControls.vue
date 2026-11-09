@@ -3,6 +3,7 @@ defineProps({
 	activeFilter: { type: String, required: true },
 });
 
+// Pass each selection to App so it can apply it to the whole board.
 const emit = defineEmits(["filter", "sort"]);
 
 const filters = [

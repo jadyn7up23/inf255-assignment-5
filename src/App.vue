@@ -38,6 +38,7 @@ async function loadAnimals() {
 		console.error(err);
 		error.value = "Sorry, the animals couldn't be loaded. Try refreshing the page.";
 	} finally {
+		// Either outcome ends the wait, so the loading message can disappear.
 		loading.value = false;
 	}
 }
@@ -59,7 +60,11 @@ function toggleAdoption(animal) {
 const activeFilter = ref("all");
 const activeSort = ref("default");
 
+// This computed list replaces the list-building part of updateDisplay().
+// Vue tracks the animal data and selected controls, so adopting an animal or
+// changing a filter updates the cards and count without a manual redraw.
 const visibleAnimals = computed(() => {
+	// Sorting a copy lets us switch back to the original order later.
 	let visible = animals.value.slice();
 
 	if (activeFilter.value === "available") {
@@ -77,6 +82,7 @@ const visibleAnimals = computed(() => {
 	return visible;
 });
 
+// Count the whole shelter so filtering the cards does not change the total.
 const availableCount = computed(
 	() => animals.value.filter((animal) => !animal.adopted).length,
 );

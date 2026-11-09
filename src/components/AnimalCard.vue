@@ -5,6 +5,9 @@ defineProps({
 	animal: { type: Object, required: true },
 });
 
+// App owns the animals, so this card reports the click and lets App update
+// the status. If both components could change it, it would be harder to tell
+// where a change came from or to keep the update rules in one place.
 const emit = defineEmits(["toggle"]);
 
 function arrivalText(intakeDate) {
